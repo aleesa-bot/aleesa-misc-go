@@ -1,0 +1,37 @@
+{
+    # localhost if not set
+    "server" : "redis",
+
+    # 6379 if not set
+    "port" : 6379,
+
+    # info if not set
+    "loglevel" : "info",
+
+    # If not set defaults to stdout
+    "log" : "/var/log/aleesa-misc-go/aleesa-misc-go.log",
+
+    # Must be set to redis pubsub channel where chat client daemons sending messages
+    "channel" : "misc",
+
+    # List of redis pubsub channels where aleesa-misc-go forwards messages
+    "forward_channels" : {
+       # games if not set
+       "games" : "games",
+
+       # phrases if not set
+       "phrases" : "phrases",
+
+       # webapp if not set
+       "webapp" : "webapp",
+
+       # craniac if not set
+       "craniac" : "craniac"
+    },
+
+    # Must be set - it is default command prefix (it is also set for each chat client daemon)
+    "csign" : "!",
+
+    # Will be set to 5 if not set
+    "forwards_max" : 5
+}

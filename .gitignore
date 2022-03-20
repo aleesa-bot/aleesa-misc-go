@@ -1,0 +1,5 @@
+.idea/**
+.vscode/**
+.vstags
+data/config.json
+aleesa-misc-go

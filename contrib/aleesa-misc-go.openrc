@@ -1,0 +1,20 @@
+#!/sbin/openrc-run
+
+name="$SVCNAME"
+command="/var/lib/$SVCNAME/$SVCNAME"
+supervisor="supervise-daemon"
+pidfile="/run/$SVCNAME/$SVCNAME.pid"
+command_user=nobody:nogroup
+
+depend() {
+        need net redis
+        use dns
+        after redis
+}
+
+start_pre() {
+        mkdir -p /var/log/aleesa-misc-go
+        chown -R nobody:nogroup /var/log/aleesa-misc-go
+        mkdir -p /run/aleesa-misc-go
+        chown -R nobody:nogroup /run/aleesa-misc-go
+}
