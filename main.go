@@ -35,8 +35,8 @@ type myConfig struct {
 // Входящее сообщение из pubsub-канала redis-ки
 type rMsg struct {
 	From    string `json:"from,omitempty"`
-	Chatid  int64  `json:"chatid,omitempty"`
-	Userid  int64  `json:"userid,omitempty"`
+	Chatid  string `json:"chatid,omitempty"`
+	Userid  string `json:"userid,omitempty"`
 	Message string `json:"message,omitempty"`
 	Plugin  string `json:"plugin,omitempty"`
 	Mode    string `json:"mode,omitempty"`
@@ -54,8 +54,8 @@ type rMsg struct {
 // Исходящее сообщение в pubsub-канал redis-ки
 type sMsg struct {
 	From    string `json:"from"`
-	Chatid  int64  `json:"chatid"`
-	Userid  int64  `json:"userid"`
+	Chatid  string `json:"chatid"`
+	Userid  string `json:"userid"`
 	Message string `json:"message"`
 	Plugin  string `json:"plugin"`
 	Mode    string `json:"mode"`
@@ -97,12 +97,12 @@ func msgParser(ctx context.Context, msg string) {
 		return
 	}
 
-	if exist := j.Chatid; exist == 0 {
+	if exist := j.Chatid; exist == "" {
 		log.Warnf("Incorrect msg from redis, no chatid field: %s", msg)
 		return
 	}
 
-	if exist := j.Userid; exist == 0 {
+	if exist := j.Userid; exist == "" {
 		log.Warnf("Incorrect msg from redis, no userid field: %s", msg)
 		return
 	}
