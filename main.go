@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -76,8 +78,18 @@ var config myConfig
 // To break circular message forwarding we must set some sane default, it can be overridden via config
 var forwardMax int64 = 5
 
-// Дефолтный конфиг клиента-редиски
+// Объектики клиента-редиски
 var redisClient *redis.Client
+var subscriber *redis.PubSub
+
+// Main context
+var ctx = context.Background()
+
+// Ставится в true, если мы получили сигнал на выключение
+var shutdown = false
+
+// Канал, в который приходят уведомления для хэндлера сигналов от траппера сигналов
+var sigChan = make(chan os.Signal, 1)
 
 // Горутинка, которая парсит json-чики прилетевшие из REDIS-ки
 func msgParser(ctx context.Context, msg string) {
@@ -389,6 +401,41 @@ func readConfig() {
 	}
 }
 
+// Хэндлер сигналов закрывает все бд и сваливает из приложения
+func sigHandler() {
+	var err error
+
+	for {
+		var s = <-sigChan
+		switch s {
+		case syscall.SIGINT:
+			log.Infoln("Got SIGINT, quitting")
+		case syscall.SIGTERM:
+			log.Infoln("Got SIGTERM, quitting")
+		case syscall.SIGQUIT:
+			log.Infoln("Got SIGQUIT, quitting")
+
+		// Заходим на новую итерацию, если у нас "неинтересный" сигнал
+		default:
+			continue
+		}
+
+		// Чтобы не срать в логи ошибками от редиски, проставим shutdown state приложения в true
+		shutdown = true
+
+		// Отпишемся от всех каналов и закроем коннект к редиске
+		if err = subscriber.Unsubscribe(ctx); err != nil {
+			log.Errorf("Unable to unsubscribe from redis channels cleanly: %s", err)
+		}
+
+		if err = subscriber.Close(); err != nil {
+			log.Errorf("Unable to close redis connection cleanly: %s", err)
+		}
+
+		os.Exit(0)
+	}
+}
+
 // Производит некоторую инициализацию перед запуском main()
 func init() {
 	log.SetFormatter(&log.TextFormatter{
@@ -440,14 +487,30 @@ func main() {
 	})
 
 	log.Debugf("Lazy connect() to redis at %s:%d", config.Server, config.Port)
-	subscriber := redisClient.Subscribe(ctx, config.Channel)
+	subscriber = redisClient.Subscribe(ctx, config.Channel)
+
+	// Самое время поставить траппер сигналов
+	signal.Notify(sigChan,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	go sigHandler()
 
 	// Обработчик событий от редиски
 	for {
+		if shutdown {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
 		msg, err := subscriber.ReceiveMessage(ctx)
 
 		if err != nil {
-			log.Warnf("Unable to connect to redis at %s:%d: %s", config.Server, config.Port, err)
+			if !shutdown {
+				log.Warnf("Unable to connect to redis at %s:%d: %s", config.Server, config.Port, err)
+			}
+
 			time.Sleep(1 * time.Second)
 			continue
 		}
