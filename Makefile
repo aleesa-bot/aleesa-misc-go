@@ -17,6 +17,6 @@ wipe:
 
 prep:
 	go mod init main
-	go mod tidy -compat=1.17
+	go mod tidy -compat=1.18
 
 # vim: set ft=make noet ai ts=4 sw=4 sts=4:
