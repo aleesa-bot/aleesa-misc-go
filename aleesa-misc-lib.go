@@ -88,7 +88,9 @@ func msgParser(ctx context.Context, msg string) {
 		// Может быть, это команда модуля phrases?
 		var done = false
 		var cmd = j.Message[len(j.Misc.Csign):]
-		cmds := []string{"friday", "пятница", "proverb", "пословица", "fortune", "фортунка", "f", "ф", "karma", "карма"}
+		cmds := []string{"friday", "пятница", "proverb", "пословица", "fortune", "фортунка", "f", "ф", "karma", "карма",
+			"rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски", "absinthe",
+			"абсент"}
 
 		for _, command := range cmds {
 			if cmd == command {
@@ -133,21 +135,35 @@ func msgParser(ctx context.Context, msg string) {
 			}
 		}
 
-		// Нет? Вдруг это комплексная команда?
+		// Нет? Вдруг это комплексная команда модуля webapp?
 		if !done {
 			cmdLen := len(cmd)
 
-			cmds := []string{"w ", "п ", "погода ", "погодка ", "погадка ", "weather ", "karma ", "карма "}
+			cmds := []string{"w ", "п ", "погода ", "погодка ", "погадка ", "weather "}
 
 			for _, command := range cmds {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
-					if command == "karma " || command == "карма " {
-						sendTo = "phrases"
+					sendTo = "webapp"
+					done = true
+					break
+				}
+			}
+		}
 
+		// Опять мимо? Давай тогда попытаем удачу в поиске комплексной команды для phrases
+		if !done {
+			cmdLen := len(cmd)
+
+			cmds := []string{"karma ", "карма ", "rum ", "ром ", "vodka ", "водка ", "beer ", "пиво ", "tequila ",
+				"текила ", "whisky ", "виски ", "absinthe ", "абсент "}
+
+			for _, command := range cmds {
+				if cmdLen > len(command) && cmd[0:len(command)] == command {
+					sendTo = "phrases"
+
+					if command == "karma " || command == "карма " {
 						// Костыль для кармы
 						j.Misc.Answer = 1
-					} else {
-						sendTo = "webapp"
 					}
 
 					break
