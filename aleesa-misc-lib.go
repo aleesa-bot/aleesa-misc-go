@@ -42,6 +42,8 @@ func msgParser(ctx context.Context, msg string) {
 		return
 	}
 
+	// j.Threadid может быит пустымб значит либо нам его не дали, либо дали пустым. Это нормально.
+
 	if exist := j.Message; exist == "" {
 		log.Warnf("Incorrect msg from redis, no message field: %s", msg)
 		return
@@ -193,6 +195,7 @@ func msgParser(ctx context.Context, msg string) {
 	message.From = j.From
 	message.Userid = j.Userid
 	message.Chatid = j.Chatid
+	message.Threadid = j.Threadid
 	message.Message = j.Message
 	message.Plugin = j.Plugin
 	message.Mode = j.Mode
