@@ -92,7 +92,7 @@ func msgParser(ctx context.Context, msg string) {
 		var cmd = j.Message[len(j.Misc.Csign):]
 		cmds := []string{"friday", "пятница", "proverb", "пословица", "fortune", "фортунка", "f", "ф", "karma", "карма",
 			"rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски", "absinthe",
-			"абсент"}
+			"абсент", "fuck"}
 
 		for _, command := range cmds {
 			if cmd == command {
