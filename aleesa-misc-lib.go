@@ -89,9 +89,9 @@ func msgParser(ctx context.Context, msg string) {
 		// Может быть, это команда модуля phrases?
 		var done = false
 		var cmd = j.Message[len(j.Misc.Csign):]
-		cmds := []string{"friday", "пятница", "proverb", "пословица", "fortune", "фортунка", "f", "ф", "karma", "карма",
-			"rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски", "absinthe",
-			"абсент", "fuck"}
+		cmds := []string{"friday", "пятница", "proverb", "пословица", "пословиться", "fortune", "фортунка", "f", "ф",
+			"karma", "карма", "rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски",
+			"absinthe", "абсент", "fuck"}
 
 		for _, command := range cmds {
 			if cmd == command {
