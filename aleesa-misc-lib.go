@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -254,7 +253,7 @@ func readConfig() {
 			continue
 		}
 
-		buf, err := ioutil.ReadFile(location)
+		buf, err := os.ReadFile(location)
 
 		// Не удалось прочитать, попробуем следующего кандидата
 		if err != nil {
