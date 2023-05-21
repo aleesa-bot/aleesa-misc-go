@@ -109,7 +109,7 @@ func msgParser(ctx context.Context, msg string) {
 
 		// Не угадали? акей, как насчёт модуля webapp?
 		if !done {
-			cmds = []string{"buni", "anek", "анек", "анекдот", "cat", "кис", "drink", "праздник", "fox", "лис", "frog",
+			cmds = []string{"buni", "anek", "анек", "анекдот", "drink", "праздник", "fox", "лис", "frog",
 				"лягушка", "horse", "лошадь", "лошадка", "monkeyuser", "rabbit", "bunny", "кролик", "snail", "улитка",
 				"owl", "сова", "сыч", "xkcd", "tits", "boobs", "tities", "boobies", "сиси", "сисечки", "butt", "booty",
 				"ass", "попа", "попка"}
