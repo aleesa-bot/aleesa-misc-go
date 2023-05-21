@@ -95,7 +95,7 @@ func msgParser(ctx context.Context, msg string) {
 
 		for _, command := range cmds {
 			if cmd == command {
-				sendTo = "phrases"
+				sendTo = config.ForwardChannels.Phrases
 
 				// Костыль для кармы
 				if cmd == "karma" || cmd == "карма" {
@@ -116,7 +116,20 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmd == command {
-					sendTo = "webapp"
+					sendTo = config.ForwardChannels.Webapp
+					done = true
+					break
+				}
+			}
+		}
+
+		// Не угадали? акей, как насчёт модуля webapp-go?
+		if !done {
+			cmds = []string{"cat", "кис"}
+
+			for _, command := range cmds {
+				if cmd == command {
+					sendTo = config.ForwardChannels.WebappGo
 					done = true
 					break
 				}
@@ -129,7 +142,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmd == command {
-					sendTo = "games"
+					sendTo = config.ForwardChannels.Games
 					done = true
 					break
 				}
@@ -144,7 +157,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
-					sendTo = "webapp"
+					sendTo = config.ForwardChannels.Webapp
 					done = true
 					break
 				}
@@ -160,7 +173,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
-					sendTo = "phrases"
+					sendTo = config.ForwardChannels.Phrases
 
 					if command == "karma " || command == "карма " {
 						// Костыль для кармы
@@ -180,7 +193,7 @@ func msgParser(ctx context.Context, msg string) {
 			if j.Message[msgLen-len("--"):msgLen] == "--" || j.Message[msgLen-len("++"):msgLen] == "++" {
 				// Предполагается, что менять карму мы будем для одной фразы, то есть для 1 строки
 				if len(strings.Split(j.Message, "\n")) == 1 {
-					sendTo = "phrases"
+					sendTo = config.ForwardChannels.Phrases
 
 					// Костыль для кармы
 					j.Misc.Answer = 1
@@ -317,6 +330,10 @@ func readConfig() {
 
 		if sampleConfig.ForwardChannels.Webapp == "" {
 			sampleConfig.ForwardChannels.Webapp = "webapp"
+		}
+
+		if sampleConfig.ForwardChannels.WebappGo == "" {
+			sampleConfig.ForwardChannels.WebappGo = "webapp-go"
 		}
 
 		if sampleConfig.ForwardChannels.Craniac == "" {

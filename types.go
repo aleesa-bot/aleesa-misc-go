@@ -8,10 +8,11 @@ type myConfig struct {
 	Log             string `json:"log,omitempty"`
 	Channel         string `json:"channel,omitempty"`
 	ForwardChannels struct {
-		Games   string `json:"games,omitempty"`
-		Phrases string `json:"phrases,omitempty"`
-		Webapp  string `json:"webapp,omitempty"`
-		Craniac string `json:"craniac,omitempty"`
+		Games    string `json:"games,omitempty"`
+		Phrases  string `json:"phrases,omitempty"`
+		Webapp   string `json:"webapp,omitempty"`
+		WebappGo string `json:"webapp-go,omitempty"`
+		Craniac  string `json:"craniac,omitempty"`
 	} `json:"forward_channels"`
 	Csign       string `json:"csign,omitempty"`
 	ForwardsMax int64  `json:"forwards_max,omitempty"`

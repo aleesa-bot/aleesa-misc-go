@@ -25,6 +25,9 @@
        # webapp if not set
        "webapp" : "webapp",
 
+       # webapp-go if not set
+        "webapp-go" : "webapp-go",
+
        # craniac if not set
        "craniac" : "craniac"
     },
