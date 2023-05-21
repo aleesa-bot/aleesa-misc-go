@@ -109,7 +109,7 @@ func msgParser(ctx context.Context, msg string) {
 
 		// Не угадали? акей, как насчёт модуля webapp?
 		if !done {
-			cmds = []string{"buni", "anek", "анек", "анекдот", "drink", "праздник", "fox", "лис", "frog",
+			cmds = []string{"buni", "anek", "анек", "анекдот", "drink", "праздник", "frog",
 				"лягушка", "horse", "лошадь", "лошадка", "monkeyuser", "rabbit", "bunny", "кролик", "snail", "улитка",
 				"owl", "сова", "сыч", "xkcd", "tits", "boobs", "tities", "boobies", "сиси", "сисечки", "butt", "booty",
 				"ass", "попа", "попка"}
@@ -125,7 +125,7 @@ func msgParser(ctx context.Context, msg string) {
 
 		// Не угадали? акей, как насчёт модуля webapp-go?
 		if !done {
-			cmds = []string{"cat", "кис"}
+			cmds = []string{"cat", "кис", "fox", "лис"}
 
 			for _, command := range cmds {
 				if cmd == command {
