@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -39,13 +38,18 @@ func init() {
 	default:
 		log.SetLevel(log.InfoLevel)
 	}
+
+	// Иницализируем клиента Редиски
+	redisClient = redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%d", config.Server, config.Port),
+	}).WithContext(ctx).WithTimeout(time.Duration(config.Timeout) * time.Second)
+
+	// Обозначим, что хотим после соединения подписаться на события из канала config.Channel
+	subscriber = redisClient.Subscribe(ctx, config.Channel)
 }
 
 // Основная функция программы, не добавить и не убавить
 func main() {
-	// Main context
-	var ctx = context.Background()
-
 	// Откроем лог и скормим его логгеру
 	if config.Log != "" {
 		logfile, err := os.OpenFile(config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
@@ -57,14 +61,6 @@ func main() {
 		log.SetOutput(logfile)
 	}
 
-	// Иницализируем клиента
-	redisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", config.Server, config.Port),
-	})
-
-	log.Debugf("Lazy connect() to redis at %s:%d", config.Server, config.Port)
-	subscriber = redisClient.Subscribe(ctx, config.Channel)
-
 	// Самое время поставить траппер сигналов
 	signal.Notify(sigChan,
 		syscall.SIGINT,
@@ -73,25 +69,13 @@ func main() {
 
 	go sigHandler()
 
-	// Обработчик событий от редиски
-	for {
-		if shutdown {
-			time.Sleep(1 * time.Second)
-			continue
+	// Начнём выгребать события из редиски (длина ковеера/буфера канала по-умолчанию - 100 сообщений)
+	ch := subscriber.Channel()
+
+	for msg := range ch {
+		if !shutdown {
+			msgParser(ctx, msg.Payload)
 		}
-
-		msg, err := subscriber.ReceiveMessage(ctx)
-
-		if err != nil {
-			if !shutdown {
-				log.Warnf("Unable to connect to redis at %s:%d: %s", config.Server, config.Port, err)
-			}
-
-			time.Sleep(1 * time.Second)
-			continue
-		}
-
-		go msgParser(ctx, msg.Payload)
 	}
 }
 

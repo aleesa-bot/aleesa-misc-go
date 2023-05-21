@@ -5,6 +5,9 @@
     # 6379 if not set
     "port" : 6379,
 
+    # Redis timeout, 10 seconds if not set
+    "timeout" : 10,
+
     # info if not set
     "loglevel" : "info",
 

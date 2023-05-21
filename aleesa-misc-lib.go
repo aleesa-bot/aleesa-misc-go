@@ -309,6 +309,10 @@ func readConfig() {
 			sampleConfig.Port = 6379
 		}
 
+		if sampleConfig.Timeout == 0 {
+			sampleConfig.Timeout = 10
+		}
+
 		if sampleConfig.Loglevel == "" {
 			sampleConfig.Loglevel = "info"
 		}

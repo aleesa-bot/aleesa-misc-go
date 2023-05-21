@@ -4,6 +4,7 @@ package main
 type myConfig struct {
 	Server          string `json:"server,omitempty"`
 	Port            int    `json:"port,omitempty"`
+	Timeout         int    `json:"timeout,omitempty"`
 	Loglevel        string `json:"loglevel,omitempty"`
 	Log             string `json:"log,omitempty"`
 	Channel         string `json:"channel,omitempty"`
