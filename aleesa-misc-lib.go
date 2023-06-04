@@ -361,6 +361,7 @@ func readConfig() {
 
 	if !configLoaded {
 		log.Error("Config was not loaded! Refusing to start.")
+		os.Exit(1)
 	}
 }
 
