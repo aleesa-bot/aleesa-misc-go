@@ -13,82 +13,95 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Горутинка, которая парсит json-чики прилетевшие из REDIS-ки
+// msgParser горутинка, которая парсит json-чики прилетевшие из REDIS-ки.
 func msgParser(ctx context.Context, msg string) {
-	var sendTo = "craniac"
-	var j rMsg
+	var (
+		sendTo = "craniac"
+		j      rMsg
+	)
 
 	log.Debugf("Incomming raw json: %s", msg)
 
 	if err := json.Unmarshal([]byte(msg), &j); err != nil {
 		log.Warnf("Unable to to parse message from redis channel: %s", err)
+
 		return
 	}
 
-	// Validate our j
+	// Validate our j.
 	if exist := j.From; exist == "" {
 		log.Warnf("Incorrect msg from redis, no from field: %s", msg)
+
 		return
 	}
 
 	if exist := j.Chatid; exist == "" {
 		log.Warnf("Incorrect msg from redis, no chatid field: %s", msg)
+
 		return
 	}
 
 	if exist := j.Userid; exist == "" {
 		log.Warnf("Incorrect msg from redis, no userid field: %s", msg)
+
 		return
 	}
 
-	// j.Threadid может быит пустымб значит либо нам его не дали, либо дали пустым. Это нормально.
+	// j.Threadid может быть пустым, значит либо нам его не дали, либо дали пустым. Это нормально.
 
 	if exist := j.Message; exist == "" {
 		log.Warnf("Incorrect msg from redis, no message field: %s", msg)
+
 		return
 	}
 
 	if exist := j.Plugin; exist == "" {
 		log.Warnf("Incorrect msg from redis, no plugin field: %s", msg)
+
 		return
 	}
 
 	if exist := j.Mode; exist == "" {
 		log.Warnf("Incorrect msg from redis, no mode field: %s", msg)
+
 		return
 	}
 
-	// j.Misc.Answer может и не быть, тогда ответа на такое сообщение не будет
-	// j.Misc.Botnick тоже можно не передавать, тогда будет записана пустая строка
-	// j.Misc.Csign если нам его не передали, возьмём значение из конфига
+	// j.Misc.Answer может и не быть, тогда ответа на такое сообщение не будет.
+	// j.Misc.Botnick тоже можно не передавать, тогда будет записана пустая строка.
+	// j.Misc.Csign если нам его не передали, возьмём значение из конфига.
 	if exist := j.Misc.Csign; exist == "" {
 		j.Misc.Csign = config.Csign
 	}
 
-	// j.Misc.Fwdcnt если нам его не передали, то будет 0
+	// j.Misc.Fwdcnt если нам его не передали, то будет 0.
 	if exist := j.Misc.Fwdcnt; exist == 0 {
 		j.Misc.Fwdcnt = 1
 	}
 
-	// j.Misc.GoodMorning может быть быть 1 или 0, по-умолчанию 0
-	// j.Misc.Msgformat может быть быть 1 или 0, по-умолчанию 0
-	// j.Misc.Username можно не передавать, тогда будет пустая строка
+	// j.Misc.GoodMorning может быть 1 или 0, по-умолчанию 0.
+	// j.Misc.Msgformat может быть 1 или 0, по-умолчанию 0.
+	// j.Misc.Username можно не передавать, тогда будет пустая строка.
 
 	// Отвалидировались, теперь вернёмся к нашим баранам.
 
-	// Если у нас циклическая пересылка сообщения, попробуем её тут разорвать, отбросив сообщение
+	// Если у нас циклическая пересылка сообщения, попробуем её тут разорвать, отбросив сообщение.
 	if j.Misc.Fwdcnt > config.ForwardsMax {
 		log.Warnf("Discarding msg with fwd_cnt exceeding max value: %s", msg)
+
 		return
-	} else {
-		j.Misc.Fwdcnt++
 	}
 
-	// Классифицирем входящие сообщения. Первым делом, попробуем определить команды
+	j.Misc.Fwdcnt++
+
+	// Классифицирем входящие сообщения. Первым делом, попробуем определить команды.
 	if j.Message[0:len(j.Misc.Csign)] == j.Misc.Csign {
 		// Может быть, это команда модуля phrases?
-		var done = false
-		var cmd = j.Message[len(j.Misc.Csign):]
+		var (
+			done = false
+			cmd  = j.Message[len(j.Misc.Csign):]
+		)
+
 		cmds := []string{"friday", "пятница", "proverb", "пословица", "пословиться", "fortune", "фортунка", "f", "ф",
 			"karma", "карма", "rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски",
 			"absinthe", "абсент", "fuck"}
@@ -97,12 +110,13 @@ func msgParser(ctx context.Context, msg string) {
 			if cmd == command {
 				sendTo = config.ForwardChannels.Phrases
 
-				// Костыль для кармы
+				// Костыль для кармы.
 				if cmd == "karma" || cmd == "карма" {
 					j.Misc.Answer = 1
 				}
 
 				done = true
+
 				break
 			}
 		}
@@ -117,6 +131,7 @@ func msgParser(ctx context.Context, msg string) {
 				if cmd == command {
 					sendTo = config.ForwardChannels.Webapp
 					done = true
+
 					break
 				}
 			}
@@ -132,6 +147,7 @@ func msgParser(ctx context.Context, msg string) {
 				if cmd == command {
 					sendTo = config.ForwardChannels.WebappGo
 					done = true
+
 					break
 				}
 			}
@@ -145,6 +161,7 @@ func msgParser(ctx context.Context, msg string) {
 				if cmd == command {
 					sendTo = config.ForwardChannels.Games
 					done = true
+
 					break
 				}
 			}
@@ -160,12 +177,13 @@ func msgParser(ctx context.Context, msg string) {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
 					sendTo = config.ForwardChannels.WebappGo
 					done = true
+
 					break
 				}
 			}
 		}
 
-		// Опять мимо? Давай тогда попытаем удачу в поиске комплексной команды для phrases
+		// Опять мимо? Давай тогда попытаем удачу в поиске комплексной команды для phrases.
 		if !done {
 			cmdLen := len(cmd)
 
@@ -186,10 +204,10 @@ func msgParser(ctx context.Context, msg string) {
 			}
 		}
 	} else {
-		// Попробуем выискать изменение кармы
+		// Попробуем выискать изменение кармы.
 		msgLen := len(j.Message)
 
-		// ++ или -- на конце фразы - это наш кандидат
+		// ++ или -- на конце фразы - это наш кандидат.
 		if msgLen > len("++") {
 			if j.Message[msgLen-len("--"):msgLen] == "--" || j.Message[msgLen-len("++"):msgLen] == "++" {
 				// Предполагается, что менять карму мы будем для одной фразы, то есть для 1 строки
@@ -203,7 +221,7 @@ func msgParser(ctx context.Context, msg string) {
 		}
 	}
 
-	// Настало время формировать json и засылать его в дальше
+	// Настало время формировать json и засылать его в дальше.
 	var message sMsg
 	message.From = j.From
 	message.Userid = j.Userid
@@ -224,10 +242,11 @@ func msgParser(ctx context.Context, msg string) {
 
 	if err != nil {
 		log.Warnf("Unable to to serialize message for redis: %s", err)
+
 		return
 	}
 
-	// Заталкиваем наш json в редиску
+	// Заталкиваем наш json в редиску.
 	if err := redisClient.Publish(ctx, sendTo, data).Err(); err != nil {
 		log.Warnf("Unable to send data to redis channel %s: %s", sendTo, err)
 	} else {
@@ -235,7 +254,8 @@ func msgParser(ctx context.Context, msg string) {
 	}
 }
 
-// Читает и валидирует конфиг, а также выставляет некоторые default-ы, если значений для параметров в конфиге нет
+// readConfig читает и валидирует конфиг, а также выставляет некоторые default-ы, если значений для параметров в конфиге
+// нет.
 func readConfig() {
 	configLoaded := false
 	executablePath, err := os.Executable()
@@ -264,6 +284,7 @@ func readConfig() {
 		// Конфиг-файл длинноват для конфига, попробуем следующего кандидата
 		if fileInfo.Size() > 65535 {
 			log.Warnf("Config file %s is too long for config, skipping", location)
+
 			continue
 		}
 
@@ -272,19 +293,24 @@ func readConfig() {
 		// Не удалось прочитать, попробуем следующего кандидата
 		if err != nil {
 			log.Warnf("Skip reading config file %s: %s", location, err)
+
 			continue
 		}
 
 		// Исходя из документации, hjson какбы умеет парсить "кривой" json, но парсит его в map-ку.
 		// Интереснее на выходе получить структурку: то есть мы вначале конфиг преобразуем в map-ку, затем эту map-ку
 		// сериализуем в json, а потом json преврщааем в стркутурку. Не очень эффективно, но он и не часто требуется.
-		var sampleConfig myConfig
-		var tmp map[string]interface{}
+		var (
+			sampleConfig myConfig
+			tmp          map[string]interface{}
+		)
+
 		err = hjson.Unmarshal(buf, &tmp)
 
 		// Не удалось распарсить - попробуем следующего кандидата
 		if err != nil {
 			log.Warnf("Skip parsing config file %s: %s", location, err)
+
 			continue
 		}
 
@@ -293,11 +319,13 @@ func readConfig() {
 		// Не удалось преобразовать map-ку в json
 		if err != nil {
 			log.Warnf("Skip parsing config file %s: %s", location, err)
+
 			continue
 		}
 
 		if err := json.Unmarshal(tmpjson, &sampleConfig); err != nil {
 			log.Warnf("Skip parsing config file %s: %s", location, err)
+
 			continue
 		}
 
@@ -355,7 +383,9 @@ func readConfig() {
 
 		config = sampleConfig
 		configLoaded = true
+
 		log.Infof("Using %s as config file", location)
+
 		break
 	}
 
@@ -365,7 +395,7 @@ func readConfig() {
 	}
 }
 
-// Хэндлер сигналов закрывает все бд и сваливает из приложения
+// sigHandler хэндлер сигналов закрывает все бд и сваливает из приложения.
 func sigHandler() {
 	var err error
 
@@ -379,15 +409,15 @@ func sigHandler() {
 		case syscall.SIGQUIT:
 			log.Infoln("Got SIGQUIT, quitting")
 
-		// Заходим на новую итерацию, если у нас "неинтересный" сигнал
+		// Заходим на новую итерацию, если у нас "неинтересный" сигнал.
 		default:
 			continue
 		}
 
-		// Чтобы не срать в логи ошибками от редиски, проставим shutdown state приложения в true
+		// Чтобы не срать в логи ошибками от редиски, проставим shutdown state приложения в true.
 		shutdown = true
 
-		// Отпишемся от всех каналов и закроем коннект к редиске
+		// Отпишемся от всех каналов и закроем коннект к редиске.
 		if err = subscriber.Unsubscribe(ctx); err != nil {
 			log.Errorf("Unable to unsubscribe from redis channels cleanly: %s", err)
 		}
