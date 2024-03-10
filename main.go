@@ -72,6 +72,8 @@ func main() {
 	// Начнём выгребать события из редиски (длина ковеера/буфера канала по-умолчанию - 100 сообщений).
 	ch := subscriber.Channel()
 
+	log.Infoln("Aleesa-misc-go started")
+
 	for msg := range ch {
 		if !shutdown {
 			msgParser(ctx, msg.Payload)

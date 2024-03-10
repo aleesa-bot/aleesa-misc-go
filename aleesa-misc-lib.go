@@ -399,6 +399,8 @@ func readConfig() {
 func sigHandler() {
 	var err error
 
+	log.Infoln("Install signal handler")
+
 	for {
 		var s = <-sigChan
 		switch s {
