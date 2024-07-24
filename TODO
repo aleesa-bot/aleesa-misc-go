@@ -1,0 +1,7 @@
+Добавить в протокол секцию nsfw/censor.
+
+В качестве валидатора использовать какую-нить готовую либу
+https://gookit.github.io/validate/#/
+github.com/go-playground/validator/v10
+
+https://awesome-go.com/validation/

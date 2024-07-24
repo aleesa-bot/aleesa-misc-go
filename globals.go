@@ -17,7 +17,7 @@ var forwardMax int64 = 5
 var redisClient *redis.Client
 var subscriber *redis.PubSub
 
-// Main context
+// Main context.
 var ctx = context.Background()
 
 // Ставится в true, если мы получили сигнал на выключение.
