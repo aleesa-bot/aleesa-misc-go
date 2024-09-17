@@ -116,27 +116,12 @@ func msgParser(ctx context.Context, msg string) {
 			}
 		}
 
-		// Не угадали? акей, как насчёт модуля webapp?
-		if !done {
-			cmds = []string{"frog",
-				"лягушка", "horse", "лошадь", "лошадка", "rabbit", "bunny", "кролик", "snail", "улитка",
-				"owl", "сова", "сыч"}
-
-			for _, command := range cmds {
-				if cmd == command {
-					sendTo = config.ForwardChannels.Webapp
-					done = true
-
-					break
-				}
-			}
-		}
-
 		// Не угадали? акей, как насчёт модуля webapp-go?
 		if !done {
-			cmds = []string{"cat", "кис", "fox", "лис", "buni", "anek", "анек", "анекдот", "xkcd", "monkeyuser", "tits",
-				"boobs", "tities", "boobies", "сиси", "сисечки", "butt", "booty", "ass", "попа", "попка", "drink",
-				"праздник"}
+			cmds = []string{"frog", "лягушка", "horse", "лошадь", "лошадка", "rabbit", "bunny", "кролик",
+				 "snail", "улитка", "cat", "кис", "fox", "лис", "buni", "anek", "анек", "анекдот",
+				"xkcd", "monkeyuser", "tits", "boobs", "tities", "boobies", "сиси", "сисечки", "butt",
+				"booty", "ass", "попа", "попка", "drink", "праздник", "owl", "сова", "сыч"}
 
 			for _, command := range cmds {
 				if cmd == command {
