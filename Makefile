@@ -1,7 +1,7 @@
 #!/usr/bin/env gmake -f
 
 GOOPTS=CGO_ENABLED=0
-BUILDOPTS=-ldflags="-s -w" -a -gcflags=all=-l -trimpath
+BUILDOPTS=-ldflags="-s -w" -a -gcflags=all=-l -trimpath -buildvcs=false
 
 all: clean build
 
@@ -13,7 +13,7 @@ clean:
 
 upgrade:
 	rm -rf vendor
-	go get -d -u -t ./...
+	go get -u -t -tool ./...
 	go mod tidy
 	go mod vendor
 
