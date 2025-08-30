@@ -9,10 +9,11 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
+
+	"aleesa-misc-go/internal/misc"
 )
 
-// init производит некоторую инициализацию перед запуском main().
-func init() {
+func main() {
 	log.SetFormatter(&log.TextFormatter{
 		DisableQuote:           true,
 		DisableLevelTruncation: false,
@@ -21,10 +22,10 @@ func init() {
 		TimestampFormat:        "2006-01-02 15:04:05",
 	})
 
-	readConfig()
+	misc.ReadConfig()
 
 	// no panic, no trace.
-	switch config.Loglevel {
+	switch misc.Config.Loglevel {
 	case "fatal":
 		log.SetLevel(log.FatalLevel)
 	case "error":
@@ -40,45 +41,40 @@ func init() {
 	}
 
 	// Иницализируем клиента Редиски.
-	redisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", config.Server, config.Port),
-	}).WithContext(ctx).WithTimeout(time.Duration(config.Timeout) * time.Second)
+	misc.RedisClient = redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%d", misc.Config.Server, misc.Config.Port),
+	}).WithContext(misc.Ctx).WithTimeout(time.Duration(misc.Config.Timeout) * time.Second)
 
 	// Обозначим, что хотим после соединения подписаться на события из канала config.Channel.
-	subscriber = redisClient.Subscribe(ctx, config.Channel)
-}
+	misc.Subscriber = misc.RedisClient.Subscribe(misc.Ctx, misc.Config.Channel)
 
-// main основная функция программы, не добавить и не убавить.
-func main() {
 	// Откроем лог и скормим его логгеру.
-	if config.Log != "" {
-		logfile, err := os.OpenFile(config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if misc.Config.Log != "" {
+		logfile, err := os.OpenFile(misc.Config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 
 		if err != nil {
-			log.Fatalf("Unable to open log file %s: %s", config.Log, err)
+			log.Fatalf("Unable to open log file %s: %s", misc.Config.Log, err)
 		}
 
 		log.SetOutput(logfile)
 	}
 
 	// Самое время поставить траппер сигналов.
-	signal.Notify(sigChan,
+	signal.Notify(misc.SigChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
-	go sigHandler()
+	go misc.SigHandler()
 
 	// Начнём выгребать события из редиски (длина конвеера/буфера канала по-умолчанию - 100 сообщений).
-	ch := subscriber.Channel()
+	ch := misc.Subscriber.Channel()
 
 	log.Infoln("Aleesa-misc-go started")
 
 	for msg := range ch {
-		if !shutdown {
-			msgParser(ctx, msg.Payload)
+		if !misc.Shutdown {
+			misc.MsgParser(misc.Ctx, msg.Payload)
 		}
 	}
 }
-
-/* vim: set ft=go noet ai ts=4 sw=4 sts=4: */

@@ -1,11 +1,8 @@
 run:
   tests: false
-  skip-dirs:
-    - data
-    - vendor
   modules-download-mode: readonly
   allow-parallel-runners: true
-  go: '1.21'
+  go: '1.24'
 output:
   sort-results: true
 linters-settings:
@@ -14,9 +11,14 @@ linters-settings:
       # Оно не используется для повышения безопасности или каких-то таких секъюрных вещей, оно используется для выборки
       # произвольного элемента из массива, так что ИДИ НАХУЙ с этой проверкой и не еби мозги липовой безопасностью.
       - G404 # Insecure random number source (rand)
+issues:
+  exclude-dirs:
+    - data
+    - vendor
 linters:
   disable-all: true
   enable:
+    - copyloopvar
     - errcheck
     - gosimple
     - govet
@@ -33,8 +35,6 @@ linters:
     - errchkjson
     - errorlint
     - exhaustive
-    - exportloopref
-    - gci
     - ginkgolinter
     - gocheckcompilerdirectives
     - gocritic

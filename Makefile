@@ -2,18 +2,19 @@
 
 GOOPTS=CGO_ENABLED=0
 BUILDOPTS=-ldflags="-s -w" -a -gcflags=all=-l -trimpath -buildvcs=false
+BINARY=aleesa-misc-go
 
 all: clean build
 
 build:
-	${GOOPTS} go build ${BUILDOPTS}
+	${GOOPTS} go build ${BUILDOPTS} -o ${BINARY} ./cmd/${BINARY}
 
 clean:
-	go clean
+	rm -rf ${BINARY}
 
 upgrade:
 	rm -rf vendor
-	go get -u -t -tool ./...
+	go get -u -t ./...
 	go mod tidy
 	go mod vendor
 

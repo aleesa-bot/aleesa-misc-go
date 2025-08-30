@@ -1,4 +1,4 @@
-package main
+package misc
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// msgParser горутинка, которая парсит json-чики прилетевшие из REDIS-ки.
-func msgParser(ctx context.Context, msg string) {
+// MsgParser горутинка, которая парсит json-чики прилетевшие из REDIS-ки.
+func MsgParser(ctx context.Context, msg string) {
 	var (
 		sendTo = "craniac"
 		j      rMsg
@@ -66,7 +66,7 @@ func msgParser(ctx context.Context, msg string) {
 	// j.Misc.Botnick тоже можно не передавать, тогда будет записана пустая строка.
 	// j.Misc.Csign если нам его не передали, возьмём значение из конфига.
 	if exist := j.Misc.Csign; exist == "" {
-		j.Misc.Csign = config.Csign
+		j.Misc.Csign = Config.Csign
 	}
 
 	// j.Misc.Fwdcnt если нам его не передали, то будет 0.
@@ -81,7 +81,7 @@ func msgParser(ctx context.Context, msg string) {
 	// Отвалидировались, теперь вернёмся к нашим баранам.
 
 	// Если у нас циклическая пересылка сообщения, попробуем её тут разорвать, отбросив сообщение.
-	if j.Misc.Fwdcnt > config.ForwardsMax {
+	if j.Misc.Fwdcnt > Config.ForwardsMax {
 		log.Warnf("Discarding msg with fwd_cnt exceeding max value: %s", msg)
 
 		return
@@ -103,7 +103,7 @@ func msgParser(ctx context.Context, msg string) {
 
 		for _, command := range cmds {
 			if cmd == command {
-				sendTo = config.ForwardChannels.Phrases
+				sendTo = Config.ForwardChannels.Phrases
 
 				// Костыль для кармы.
 				if cmd == "karma" || cmd == "карма" {
@@ -126,7 +126,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmd == command {
-					sendTo = config.ForwardChannels.WebappGo
+					sendTo = Config.ForwardChannels.WebappGo
 					done = true
 
 					break
@@ -140,7 +140,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmd == command {
-					sendTo = config.ForwardChannels.Games
+					sendTo = Config.ForwardChannels.Games
 					done = true
 
 					break
@@ -156,7 +156,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
-					sendTo = config.ForwardChannels.WebappGo
+					sendTo = Config.ForwardChannels.WebappGo
 					done = true
 
 					break
@@ -173,7 +173,7 @@ func msgParser(ctx context.Context, msg string) {
 
 			for _, command := range cmds {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
-					sendTo = config.ForwardChannels.Phrases
+					sendTo = Config.ForwardChannels.Phrases
 
 					if command == "karma " || command == "карма " {
 						// Костыль для кармы
@@ -193,7 +193,7 @@ func msgParser(ctx context.Context, msg string) {
 			if j.Message[msgLen-len("--"):msgLen] == "--" || j.Message[msgLen-len("++"):msgLen] == "++" {
 				// Предполагается, что менять карму мы будем для одной фразы, то есть для 1 строки
 				if len(strings.Split(j.Message, "\n")) == 1 {
-					sendTo = config.ForwardChannels.Phrases
+					sendTo = Config.ForwardChannels.Phrases
 
 					// Костыль для кармы
 					j.Misc.Answer = 1
@@ -228,9 +228,11 @@ func msgParser(ctx context.Context, msg string) {
 	}
 
 	// Заталкиваем наш json в редиску.
-	if err := redisClient.Publish(ctx, sendTo, data).Err(); err != nil {
+	if err := RedisClient.Publish(ctx, sendTo, data).Err(); err != nil {
 		log.Warnf("Unable to send data to redis channel %s: %s", sendTo, err)
 	} else {
 		log.Debugf("Send msg to redis channel %s: %s", sendTo, string(data))
 	}
 }
+
+/* vim: set ft=go noet ai ts=4 sw=4 sts=4: */

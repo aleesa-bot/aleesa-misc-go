@@ -1,19 +1,18 @@
-package main
+package misc
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-	"syscall"
 
 	"github.com/hjson/hjson-go"
 	log "github.com/sirupsen/logrus"
 )
 
-// readConfig читает и валидирует конфиг, а также выставляет некоторые default-ы, если значений для параметров в конфиге
+// ReadConfig читает и валидирует конфиг, а также выставляет некоторые default-ы, если значений для параметров в конфиге
 // нет.
-func readConfig() {
+func ReadConfig() {
 	configLoaded := false
 	executablePath, err := os.Executable()
 
@@ -135,10 +134,10 @@ func readConfig() {
 		}
 
 		if sampleConfig.ForwardsMax == 0 {
-			sampleConfig.ForwardsMax = forwardMax
+			sampleConfig.ForwardsMax = ForwardMax
 		}
 
-		config = sampleConfig
+		Config = sampleConfig
 		configLoaded = true
 
 		log.Infof("Using %s as config file", location)
@@ -149,43 +148,6 @@ func readConfig() {
 	if !configLoaded {
 		log.Error("Config was not loaded! Refusing to start.")
 		os.Exit(1)
-	}
-}
-
-// sigHandler хэндлер сигналов закрывает все бд и сваливает из приложения.
-func sigHandler() {
-	var err error
-
-	log.Infoln("Install signal handler")
-
-	for {
-		var s = <-sigChan
-		switch s {
-		case syscall.SIGINT:
-			log.Infoln("Got SIGINT, quitting")
-		case syscall.SIGTERM:
-			log.Infoln("Got SIGTERM, quitting")
-		case syscall.SIGQUIT:
-			log.Infoln("Got SIGQUIT, quitting")
-
-		// Заходим на новую итерацию, если у нас "неинтересный" сигнал.
-		default:
-			continue
-		}
-
-		// Чтобы не срать в логи ошибками от редиски, проставим shutdown state приложения в true.
-		shutdown = true
-
-		// Отпишемся от всех каналов и закроем коннект к редиске.
-		if err = subscriber.Unsubscribe(ctx); err != nil {
-			log.Errorf("Unable to unsubscribe from redis channels cleanly: %s", err)
-		}
-
-		if err = subscriber.Close(); err != nil {
-			log.Errorf("Unable to close redis connection cleanly: %s", err)
-		}
-
-		os.Exit(0)
 	}
 }
 
