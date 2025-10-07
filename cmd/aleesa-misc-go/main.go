@@ -14,7 +14,10 @@ import (
 )
 
 func main() {
-	var err error
+	var (
+		err      error
+		loglevel slog.Level
+	)
 
 	misc.ReadConfig()
 
@@ -32,66 +35,51 @@ func main() {
 	// no panic, no trace.
 	switch misc.Config.Loglevel {
 	case "error":
-		slog.SetDefault(
-			slog.New(
-				slog.NewTextHandler(
-					loghandler,
-					&slog.HandlerOptions{
-						Level: slog.LevelError,
-					},
-				),
-			),
-		)
+		loglevel = slog.LevelError
 
 	case "warn":
-		slog.SetDefault(
-			slog.New(
-				slog.NewTextHandler(
-					loghandler,
-					&slog.HandlerOptions{
-						Level: slog.LevelWarn,
-					},
-				),
-			),
-		)
+		loglevel = slog.LevelWarn
 
 	case "info":
-		slog.SetDefault(
-			slog.New(
-				slog.NewTextHandler(
-					loghandler,
-					&slog.HandlerOptions{
-						Level: slog.LevelInfo,
-					},
-				),
-			),
-		)
+		loglevel = slog.LevelInfo
 
 	case "debug":
-		slog.SetDefault(
-			slog.New(
-				slog.NewTextHandler(
-					loghandler,
-					&slog.HandlerOptions{
-						Level: slog.LevelDebug,
-					},
-				),
-			),
-		)
+		loglevel = slog.LevelDebug
 
 	default:
-		slog.SetDefault(
-			slog.New(
-				slog.NewTextHandler(
-					loghandler,
-					&slog.HandlerOptions{
-						Level: slog.LevelInfo,
-					},
-				),
-			),
-		)
+		loglevel = slog.LevelInfo
 
 	}
+
+	opts := &slog.HandlerOptions{
+		// Use the ReplaceAttr function on the handler options
+		// to be able to replace any single attribute in the log output
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			// check that we are handling the time key
+			if a.Key != slog.TimeKey {
+				return a
+			}
+
+			t := a.Value.Time()
+
+			// change the value from a time.Time to a String
+			// where the string has the correct time format.
+			a.Value = slog.StringValue(t.Format(time.DateTime))
+
+			return a
+		},
+
+		Level: loglevel,
+	}
+
+	slog.SetDefault(
+		slog.New(
+			slog.NewTextHandler(
+				loghandler,
+				opts,
+			),
+		),
+	)
 
 	// Иницализируем клиента Редиски.
 	misc.RedisClient = redis.NewClient(&redis.Options{
@@ -120,3 +108,5 @@ func main() {
 		}
 	}
 }
+
+/* vim: set ft=go noet ai ts=4 sw=4 sts=4: */
