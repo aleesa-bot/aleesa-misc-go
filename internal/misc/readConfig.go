@@ -3,11 +3,11 @@ package misc
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/hjson/hjson-go"
-	log "github.com/sirupsen/logrus"
 )
 
 // ReadConfig читает и валидирует конфиг, а также выставляет некоторые default-ы, если значений для параметров в конфиге
@@ -17,7 +17,7 @@ func ReadConfig() {
 	executablePath, err := os.Executable()
 
 	if err != nil {
-		log.Errorf("Unable to get current executable path: %s", err)
+		slog.Error(fmt.Sprintf("Unable to get current executable path: %s", err))
 	}
 
 	configJSONPath := fmt.Sprintf("%s/data/config.json", filepath.Dir(executablePath))
@@ -39,7 +39,7 @@ func ReadConfig() {
 
 		// Конфиг-файл длинноват для конфига, попробуем следующего кандидата
 		if fileInfo.Size() > 65535 {
-			log.Warnf("Config file %s is too long for config, skipping", location)
+			slog.Warn(fmt.Sprintf("Config file %s is too long for config, skipping", location))
 
 			continue
 		}
@@ -48,7 +48,7 @@ func ReadConfig() {
 
 		// Не удалось прочитать, попробуем следующего кандидата
 		if err != nil {
-			log.Warnf("Skip reading config file %s: %s", location, err)
+			slog.Warn(fmt.Sprintf("Skip reading config file %s: %s", location, err))
 
 			continue
 		}
@@ -65,7 +65,7 @@ func ReadConfig() {
 
 		// Не удалось распарсить - попробуем следующего кандидата
 		if err != nil {
-			log.Warnf("Skip parsing config file %s: %s", location, err)
+			slog.Warn(fmt.Sprintf("Skip parsing config file %s: %s", location, err))
 
 			continue
 		}
@@ -74,13 +74,13 @@ func ReadConfig() {
 
 		// Не удалось преобразовать map-ку в json
 		if err != nil {
-			log.Warnf("Skip parsing config file %s: %s", location, err)
+			slog.Warn(fmt.Sprintf("Skip parsing config file %s: %s", location, err))
 
 			continue
 		}
 
 		if err := json.Unmarshal(tmpjson, &sampleConfig); err != nil {
-			log.Warnf("Skip parsing config file %s: %s", location, err)
+			slog.Warn(fmt.Sprintf("Skip parsing config file %s: %s", location, err))
 
 			continue
 		}
@@ -105,7 +105,7 @@ func ReadConfig() {
 		// sampleConfig.Log = "" if not set
 
 		if sampleConfig.Channel == "" {
-			log.Errorf("Channel field in config file %s must be set", location)
+			slog.Error(fmt.Sprintf("Channel field in config file %s must be set", location))
 		}
 
 		// Частичная проверка, ровно то, куда мы _точно_ щепрввляем сообщения исходя из бизнес-логики приложения
@@ -130,7 +130,7 @@ func ReadConfig() {
 		}
 
 		if sampleConfig.Csign == "" {
-			log.Errorf("Csign field in config file %s must be set", location)
+			slog.Error(fmt.Sprintf("Csign field in config file %s must be set", location))
 		}
 
 		if sampleConfig.ForwardsMax == 0 {
@@ -140,13 +140,13 @@ func ReadConfig() {
 		Config = sampleConfig
 		configLoaded = true
 
-		log.Infof("Using %s as config file", location)
+		slog.Info(fmt.Sprintf("Using %s as config file", location))
 
 		break
 	}
 
 	if !configLoaded {
-		log.Error("Config was not loaded! Refusing to start.")
+		slog.Error("Config was not loaded! Refusing to start.")
 		os.Exit(1)
 	}
 }

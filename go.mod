@@ -2,10 +2,7 @@ module aleesa-misc-go
 
 go 1.24.0
 
-require (
-	github.com/go-redis/redis/v8 v8.11.5
-	github.com/sirupsen/logrus v1.9.3
-)
+require github.com/go-redis/redis/v8 v8.11.5
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

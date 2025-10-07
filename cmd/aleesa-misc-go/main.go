@@ -2,42 +2,95 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/go-redis/redis/v8"
-	log "github.com/sirupsen/logrus"
-
 	"aleesa-misc-go/internal/misc"
+
+	"github.com/go-redis/redis/v8"
 )
 
 func main() {
-	log.SetFormatter(&log.TextFormatter{
-		DisableQuote:           true,
-		DisableLevelTruncation: false,
-		DisableColors:          true,
-		FullTimestamp:          true,
-		TimestampFormat:        "2006-01-02 15:04:05",
-	})
+	var err error
 
 	misc.ReadConfig()
 
+	loghandler := os.Stderr
+
+	if misc.Config.Log != "" {
+		loghandler, err = os.OpenFile(misc.Config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+
+		if err != nil {
+			slog.Error(fmt.Sprintf("Unable to open log file %s: %s", misc.Config.Log, err))
+			os.Exit(1)
+		}
+	}
+
 	// no panic, no trace.
 	switch misc.Config.Loglevel {
-	case "fatal":
-		log.SetLevel(log.FatalLevel)
 	case "error":
-		log.SetLevel(log.ErrorLevel)
+		slog.SetDefault(
+			slog.New(
+				slog.NewTextHandler(
+					loghandler,
+					&slog.HandlerOptions{
+						Level: slog.LevelError,
+					},
+				),
+			),
+		)
+
 	case "warn":
-		log.SetLevel(log.WarnLevel)
+		slog.SetDefault(
+			slog.New(
+				slog.NewTextHandler(
+					loghandler,
+					&slog.HandlerOptions{
+						Level: slog.LevelWarn,
+					},
+				),
+			),
+		)
+
 	case "info":
-		log.SetLevel(log.InfoLevel)
+		slog.SetDefault(
+			slog.New(
+				slog.NewTextHandler(
+					loghandler,
+					&slog.HandlerOptions{
+						Level: slog.LevelInfo,
+					},
+				),
+			),
+		)
+
 	case "debug":
-		log.SetLevel(log.DebugLevel)
+		slog.SetDefault(
+			slog.New(
+				slog.NewTextHandler(
+					loghandler,
+					&slog.HandlerOptions{
+						Level: slog.LevelDebug,
+					},
+				),
+			),
+		)
+
 	default:
-		log.SetLevel(log.InfoLevel)
+		slog.SetDefault(
+			slog.New(
+				slog.NewTextHandler(
+					loghandler,
+					&slog.HandlerOptions{
+						Level: slog.LevelInfo,
+					},
+				),
+			),
+		)
+
 	}
 
 	// Иницализируем клиента Редиски.
@@ -47,17 +100,6 @@ func main() {
 
 	// Обозначим, что хотим после соединения подписаться на события из канала config.Channel.
 	misc.Subscriber = misc.RedisClient.Subscribe(misc.Ctx, misc.Config.Channel)
-
-	// Откроем лог и скормим его логгеру.
-	if misc.Config.Log != "" {
-		logfile, err := os.OpenFile(misc.Config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-
-		if err != nil {
-			log.Fatalf("Unable to open log file %s: %s", misc.Config.Log, err)
-		}
-
-		log.SetOutput(logfile)
-	}
 
 	// Самое время поставить траппер сигналов.
 	signal.Notify(misc.SigChan,
@@ -70,7 +112,7 @@ func main() {
 	// Начнём выгребать события из редиски (длина конвеера/буфера канала по-умолчанию - 100 сообщений).
 	ch := misc.Subscriber.Channel()
 
-	log.Infoln("Aleesa-misc-go started")
+	slog.Info("Aleesa-misc-go started")
 
 	for msg := range ch {
 		if !misc.Shutdown {
