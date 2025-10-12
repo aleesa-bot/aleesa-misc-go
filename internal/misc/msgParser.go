@@ -3,9 +3,9 @@ package misc
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"log/slog"
 	"strings"
+
+	"aleesa-misc-go/internal/log"
 )
 
 // MsgParser горутинка, которая парсит json-чики прилетевшие из REDIS-ки.
@@ -15,29 +15,29 @@ func MsgParser(ctx context.Context, msg string) {
 		j      rMsg
 	)
 
-	slog.Debug(fmt.Sprintf("Incomming raw json: %s", msg))
+	log.Debugf("Incomming raw json: %s", msg)
 
 	if err := json.Unmarshal([]byte(msg), &j); err != nil {
-		slog.Warn(fmt.Sprintf("Unable to to parse message from redis channel: %s", err))
+		log.Warnf("Unable to to parse message from redis channel: %s", err)
 
 		return
 	}
 
 	// Validate our j.
 	if exist := j.From; exist == "" {
-		slog.Warn(fmt.Sprintf("Incorrect msg from redis, no from field: %s", msg))
+		log.Warnf("Incorrect msg from redis, no from field: %s", msg)
 
 		return
 	}
 
 	if exist := j.Chatid; exist == "" {
-		slog.Warn(fmt.Sprintf("Incorrect msg from redis, no chatid field: %s", msg))
+		log.Warnf("Incorrect msg from redis, no chatid field: %s", msg)
 
 		return
 	}
 
 	if exist := j.Userid; exist == "" {
-		slog.Warn(fmt.Sprintf("Incorrect msg from redis, no userid field: %s", msg))
+		log.Warnf("Incorrect msg from redis, no userid field: %s", msg)
 
 		return
 	}
@@ -45,19 +45,19 @@ func MsgParser(ctx context.Context, msg string) {
 	// j.Threadid может быть пустым, значит либо нам его не дали, либо дали пустым. Это нормально.
 
 	if exist := j.Message; exist == "" {
-		slog.Warn(fmt.Sprintf("Incorrect msg from redis, no message field: %s", msg))
+		log.Warnf("Incorrect msg from redis, no message field: %s", msg)
 
 		return
 	}
 
 	if exist := j.Plugin; exist == "" {
-		slog.Warn(fmt.Sprintf("Incorrect msg from redis, no plugin field: %s", msg))
+		log.Warnf("Incorrect msg from redis, no plugin field: %s", msg)
 
 		return
 	}
 
 	if exist := j.Mode; exist == "" {
-		slog.Warn(fmt.Sprintf("Incorrect msg from redis, no mode field: %s", msg))
+		log.Warnf("Incorrect msg from redis, no mode field: %s", msg)
 
 		return
 	}
@@ -82,7 +82,7 @@ func MsgParser(ctx context.Context, msg string) {
 
 	// Если у нас циклическая пересылка сообщения, попробуем её тут разорвать, отбросив сообщение.
 	if j.Misc.Fwdcnt > Config.ForwardsMax {
-		slog.Warn(fmt.Sprintf("Discarding msg with fwd_cnt exceeding max value: %s", msg))
+		log.Warnf("Discarding msg with fwd_cnt exceeding max value: %s", msg)
 
 		return
 	}
@@ -222,16 +222,16 @@ func MsgParser(ctx context.Context, msg string) {
 	data, err := json.Marshal(message)
 
 	if err != nil {
-		slog.Warn(fmt.Sprintf("Unable to to serialize message for redis: %s", err))
+		log.Warnf("Unable to to serialize message for redis: %s", err)
 
 		return
 	}
 
 	// Заталкиваем наш json в редиску.
 	if err := RedisClient.Publish(ctx, sendTo, data).Err(); err != nil {
-		slog.Warn(fmt.Sprintf("Unable to send data to redis channel %s: %s", sendTo, err))
+		log.Warnf("Unable to send data to redis channel %s: %s", sendTo, err)
 	} else {
-		slog.Debug(fmt.Sprintf("Send msg to redis channel %s: %s", sendTo, string(data)))
+		log.Debugf("Send msg to redis channel %s: %s", sendTo, string(data))
 	}
 }
 

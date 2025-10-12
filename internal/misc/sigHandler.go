@@ -1,27 +1,27 @@
 package misc
 
 import (
-	"fmt"
-	"log/slog"
 	"os"
 	"syscall"
+
+	"aleesa-misc-go/internal/log"
 )
 
 // SigHandler хэндлер сигналов закрывает все бд и сваливает из приложения.
 func SigHandler() {
 	var err error
 
-	slog.Info("Install signal handler")
+	log.Info("Install signal handler")
 
 	for {
 		var s = <-SigChan
 		switch s {
 		case syscall.SIGINT:
-			slog.Info("Got SIGINT, quitting")
+			log.Info("Got SIGINT, quitting")
 		case syscall.SIGTERM:
-			slog.Info("Got SIGTERM, quitting")
+			log.Info("Got SIGTERM, quitting")
 		case syscall.SIGQUIT:
-			slog.Info("Got SIGQUIT, quitting")
+			log.Info("Got SIGQUIT, quitting")
 
 		// Заходим на новую итерацию, если у нас "неинтересный" сигнал.
 		default:
@@ -33,11 +33,11 @@ func SigHandler() {
 
 		// Отпишемся от всех каналов и закроем коннект к редиске.
 		if err = Subscriber.Unsubscribe(Ctx); err != nil {
-			slog.Error(fmt.Sprintf("Unable to unsubscribe from redis channels cleanly: %s", err))
+			log.Errorf("Unable to unsubscribe from redis channels cleanly: %s", err)
 		}
 
 		if err = Subscriber.Close(); err != nil {
-			slog.Error(fmt.Sprintf("Unable to close redis connection cleanly: %s", err))
+			log.Errorf("Unable to close redis connection cleanly: %s", err)
 		}
 
 		os.Exit(0)

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"aleesa-misc-go/internal/log"
 	"aleesa-misc-go/internal/misc"
 
 	"github.com/go-redis/redis/v8"
@@ -15,71 +15,24 @@ import (
 
 func main() {
 	var (
-		err      error
-		loglevel slog.Level
+		err     error
+		logfile *os.File
 	)
 
 	misc.ReadConfig()
 
-	loghandler := os.Stderr
-
 	if misc.Config.Log != "" {
-		loghandler, err = os.OpenFile(misc.Config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		logfile, err = os.OpenFile(misc.Config.Log, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 
 		if err != nil {
-			slog.Error(fmt.Sprintf("Unable to open log file %s: %s", misc.Config.Log, err))
+			log.Error(fmt.Sprintf("Unable to open log file %s: %s", misc.Config.Log, err))
 			os.Exit(1)
 		}
+	} else {
+		logfile = os.Stderr
 	}
 
-	// no panic, no trace.
-	switch misc.Config.Loglevel {
-	case "error":
-		loglevel = slog.LevelError
-
-	case "warn":
-		loglevel = slog.LevelWarn
-
-	case "info":
-		loglevel = slog.LevelInfo
-
-	case "debug":
-		loglevel = slog.LevelDebug
-
-	default:
-		loglevel = slog.LevelInfo
-
-	}
-
-	opts := &slog.HandlerOptions{
-		// Use the ReplaceAttr function on the handler options
-		// to be able to replace any single attribute in the log output
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			// check that we are handling the time key
-			if a.Key != slog.TimeKey {
-				return a
-			}
-
-			t := a.Value.Time()
-
-			// change the value from a time.Time to a String
-			// where the string has the correct time format.
-			a.Value = slog.StringValue(t.Format(time.DateTime))
-
-			return a
-		},
-
-		Level: loglevel,
-	}
-
-	slog.SetDefault(
-		slog.New(
-			slog.NewTextHandler(
-				loghandler,
-				opts,
-			),
-		),
-	)
+	log.Init(misc.Config.Loglevel, logfile)
 
 	// Иницализируем клиента Редиски.
 	misc.RedisClient = redis.NewClient(&redis.Options{
@@ -100,7 +53,7 @@ func main() {
 	// Начнём выгребать события из редиски (длина конвеера/буфера канала по-умолчанию - 100 сообщений).
 	ch := misc.Subscriber.Channel()
 
-	slog.Info("Aleesa-misc-go started")
+	log.Info("Aleesa-misc-go started")
 
 	for msg := range ch {
 		if !misc.Shutdown {
