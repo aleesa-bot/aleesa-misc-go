@@ -69,9 +69,10 @@ func MsgParser(ctx context.Context, msg string) {
 		j.Misc.Csign = Config.Csign
 	}
 
-	// j.Misc.Fwdcnt если нам его не передали, то будет 0.
-	if exist := j.Misc.Fwdcnt; exist == 0 {
-		j.Misc.Fwdcnt = 1
+	// j.Misc.Fwdcnt если нам его не передали, то будет nil.
+	if j.Misc.Fwdcnt == nil {
+		j.Misc.Fwdcnt = new(int64)
+		*j.Misc.Fwdcnt = 1
 	}
 
 	// j.Misc.GoodMorning может быть 1 или 0, по-умолчанию 0.
@@ -81,13 +82,13 @@ func MsgParser(ctx context.Context, msg string) {
 	// Отвалидировались, теперь вернёмся к нашим баранам.
 
 	// Если у нас циклическая пересылка сообщения, попробуем её тут разорвать, отбросив сообщение.
-	if j.Misc.Fwdcnt > Config.ForwardsMax {
+	if *j.Misc.Fwdcnt > Config.ForwardsMax {
 		log.Warnf("Discarding msg with fwd_cnt exceeding max value: %s", msg)
 
 		return
 	}
 
-	j.Misc.Fwdcnt++
+	*j.Misc.Fwdcnt++
 
 	// Классифицирем входящие сообщения. Первым делом, попробуем определить команды.
 	if len(j.Message) >= len(j.Misc.Csign) && j.Message[0:len(j.Misc.Csign)] == j.Misc.Csign {
@@ -211,7 +212,7 @@ func MsgParser(ctx context.Context, msg string) {
 	message.Message = j.Message
 	message.Plugin = j.Plugin
 	message.Mode = j.Mode
-	message.Misc.Fwdcnt = j.Misc.Fwdcnt
+	message.Misc.Fwdcnt = *j.Misc.Fwdcnt
 	message.Misc.Csign = j.Misc.Csign
 	message.Misc.Username = j.Misc.Username
 	message.Misc.Answer = j.Misc.Answer

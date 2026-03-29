@@ -52,7 +52,7 @@ type rMsg struct {
 		Answer      int64  `json:"answer,omitempty"`
 		Botnick     string `json:"bot_nick,omitempty"`
 		Csign       string `json:"csign,omitempty"`
-		Fwdcnt      int64  `json:"fwd_cnt,omitempty"`
+		Fwdcnt      *int64 `json:"fwd_cnt,omitempty"`
 		GoodMorning int64  `json:"good_morning,omitempty"`
 		Msgformat   int64  `json:"msg_format,omitempty"`
 		Username    string `json:"username,omitempty"`
