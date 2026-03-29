@@ -90,7 +90,7 @@ func MsgParser(ctx context.Context, msg string) {
 	j.Misc.Fwdcnt++
 
 	// Классифицирем входящие сообщения. Первым делом, попробуем определить команды.
-	if j.Message[0:len(j.Misc.Csign)] == j.Misc.Csign {
+	if len(j.Message) >= len(j.Misc.Csign) && j.Message[0:len(j.Misc.Csign)] == j.Misc.Csign {
 		// Может быть, это команда модуля phrases?
 		var (
 			done = false
