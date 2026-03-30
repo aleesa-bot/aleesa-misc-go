@@ -8,6 +8,19 @@ UNIX_BINARY=${MYNAME}
 WINDOWS_BINARY=${MYNAME}.exe
 RMCMD=rm -rf
 
+# Default target
+.PHONY: help
+help:
+	@echo "aleesa-misc-go build system"
+	@echo ""
+	@echo "Available targets:"
+	@echo "  all       Clean and build (default)"
+	@echo "  build     Build binary only"
+	@echo "  clean     Remove built artifacts"
+	@echo "  test      Run unit tests"
+	@echo "  upgrade   Update dependencies (get, tidy, vendor)"
+	@echo ""
+
 # На windows имя бинарника может зависеть не только от платформы, но и от выбранной цели, для linux-а суффикс .exe
 # не нужен
 ifeq ($(OS),Windows_NT)
@@ -30,6 +43,7 @@ define IFS
 
 endef
 
+.PHONY: all build clean test upgrade help
 
 all: clean build
 
@@ -67,6 +81,10 @@ endif # ifeq ($(SHELL),sh.exe)
 else  # not ifeq ($(OS),Windows_NT)
 	${RMCMD} ./${BINARY}
 endif
+
+
+test:
+	go test ./...
 
 
 upgrade:
