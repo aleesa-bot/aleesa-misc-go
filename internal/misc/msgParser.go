@@ -14,6 +14,31 @@ const (
 	retryDelay    = time.Second
 )
 
+var (
+	commandsPhrases = []string{
+		"friday", "пятница", "proverb", "пословица", "пословиться", "fortune", "фортунка", "f", "ф",
+		"karma", "карма", "rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски",
+		"absinthe", "абсент", "fuck",
+	}
+	commandsPhrasesPrefix = []string{
+		"karma ", "карма ", "rum ", "ром ", "vodka ", "водка ", "beer ", "пиво ", "tequila ",
+		"текила ", "whisky ", "виски ", "absinthe ", "абсент ",
+	}
+	commandsWebappGo = []string{
+		"frog", "лягушка", "horse", "лошадь", "лошадка", "rabbit", "bunny", "кролик",
+		"snail", "улитка", "cat", "кис", "fox", "лис", "buni", "anek", "анек", "анекдот",
+		"xkcd", "monkeyuser", "tits", "boobs", "tities", "boobies", "сиси", "сисечки", "butt",
+		"booty", "ass", "попа", "попка", "drink", "праздник", "owl", "сова", "сыч", "w", "п", "погода",
+		"погодка", "погадка",
+	}
+	commandsWebappGoPrefix = []string{
+		"w ", "п ", "погода ", "погодка ", "погадка ", "weather ",
+	}
+	commandsGames = []string{
+		"dig", "копать", "fish", "fishing", "рыба", "рыбка", "рыбалка",
+	}
+)
+
 // MsgParser горутинка, которая парсит json-чики прилетевшие из REDIS-ки.
 func MsgParser(ctx context.Context, msg string) {
 	var (
@@ -104,11 +129,7 @@ func MsgParser(ctx context.Context, msg string) {
 			cmd  = j.Message[len(j.Misc.Csign):]
 		)
 
-		cmds := []string{"friday", "пятница", "proverb", "пословица", "пословиться", "fortune", "фортунка", "f", "ф",
-			"karma", "карма", "rum", "ром", "vodka", "водка", "beer", "пиво", "tequila", "текила", "whisky", "виски",
-			"absinthe", "абсент", "fuck"}
-
-		for _, command := range cmds {
+		for _, command := range commandsPhrases {
 			if cmd == command {
 				sendTo = Config.ForwardChannels.Phrases
 
@@ -125,13 +146,7 @@ func MsgParser(ctx context.Context, msg string) {
 
 		// Не угадали? акей, как насчёт модуля webapp-go?
 		if !done {
-			cmds = []string{"frog", "лягушка", "horse", "лошадь", "лошадка", "rabbit", "bunny", "кролик",
-				"snail", "улитка", "cat", "кис", "fox", "лис", "buni", "anek", "анек", "анекдот",
-				"xkcd", "monkeyuser", "tits", "boobs", "tities", "boobies", "сиси", "сисечки", "butt",
-				"booty", "ass", "попа", "попка", "drink", "праздник", "owl", "сова", "сыч", "w", "п", "погода",
-				"погодка", "погадка"}
-
-			for _, command := range cmds {
+			for _, command := range commandsWebappGo {
 				if cmd == command {
 					sendTo = Config.ForwardChannels.WebappGo
 					done = true
@@ -143,9 +158,7 @@ func MsgParser(ctx context.Context, msg string) {
 
 		// Не фортануло? может, повезёт с модулем games?
 		if !done {
-			cmds = []string{"dig", "копать", "fish", "fishing", "рыба", "рыбка", "рыбалка"}
-
-			for _, command := range cmds {
+			for _, command := range commandsGames {
 				if cmd == command {
 					sendTo = Config.ForwardChannels.Games
 					done = true
@@ -159,9 +172,7 @@ func MsgParser(ctx context.Context, msg string) {
 		if !done {
 			cmdLen := len(cmd)
 
-			cmds := []string{"w ", "п ", "погода ", "погодка ", "погадка ", "weather "}
-
-			for _, command := range cmds {
+			for _, command := range commandsWebappGoPrefix {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
 					sendTo = Config.ForwardChannels.WebappGo
 					done = true
@@ -175,10 +186,7 @@ func MsgParser(ctx context.Context, msg string) {
 		if !done {
 			cmdLen := len(cmd)
 
-			cmds := []string{"karma ", "карма ", "rum ", "ром ", "vodka ", "водка ", "beer ", "пиво ", "tequila ",
-				"текила ", "whisky ", "виски ", "absinthe ", "абсент "}
-
-			for _, command := range cmds {
+			for _, command := range commandsPhrasesPrefix {
 				if cmdLen > len(command) && cmd[0:len(command)] == command {
 					sendTo = Config.ForwardChannels.Phrases
 
