@@ -36,7 +36,10 @@ func main() {
 
 	// Иницализируем клиента Редиски.
 	misc.RedisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", misc.Config.Server, misc.Config.Port),
+		Addr:            fmt.Sprintf("%s:%d", misc.Config.Server, misc.Config.Port),
+		MaxRetries:      -1,
+		MinRetryBackoff: time.Second,
+		MaxRetryBackoff: 30 * time.Second,
 	}).WithContext(misc.Ctx).WithTimeout(time.Duration(misc.Config.Timeout) * time.Second)
 
 	// Проверим, что редиска доступна. Повторяем попытки, пока не подключится.
