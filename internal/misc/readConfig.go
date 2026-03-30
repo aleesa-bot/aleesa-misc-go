@@ -107,6 +107,8 @@ func ReadConfig() {
 
 		if sampleConfig.Channel == "" {
 			log.Errorf("Channel field in config file %s must be set", location)
+
+			continue
 		}
 
 		// Частичная проверка, ровно то, куда мы _точно_ щепрввляем сообщения исходя из бизнес-логики приложения
@@ -132,6 +134,8 @@ func ReadConfig() {
 
 		if sampleConfig.Csign == "" {
 			log.Errorf("Csign field in config file %s must be set", location)
+
+			continue
 		}
 
 		if sampleConfig.ForwardsMax == 0 {
