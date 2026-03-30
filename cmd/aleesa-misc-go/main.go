@@ -28,6 +28,8 @@ func main() {
 			log.Error(fmt.Sprintf("Unable to open log file %s: %s", misc.Config.Log, err))
 			os.Exit(1)
 		}
+
+		defer logfile.Close()
 	} else {
 		logfile = os.Stderr
 	}

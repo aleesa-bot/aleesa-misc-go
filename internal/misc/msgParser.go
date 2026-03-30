@@ -21,7 +21,7 @@ func MsgParser(ctx context.Context, msg string) {
 		j      rMsg
 	)
 
-	log.Debugf("Incomming raw json: %s", msg)
+	log.Debugf("Incoming raw json: %s", msg)
 
 	if err := json.Unmarshal([]byte(msg), &j); err != nil {
 		log.Warnf("Unable to to parse message from redis channel: %s", err)

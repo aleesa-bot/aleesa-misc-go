@@ -56,7 +56,7 @@ type rMsg struct {
 		GoodMorning int64  `json:"good_morning,omitempty"`
 		Msgformat   int64  `json:"msg_format,omitempty"`
 		Username    string `json:"username,omitempty"`
-	} `json:"Misc"`
+	} `json:"misc"`
 }
 
 /* vim: set ft=go noet ai ts=4 sw=4 sts=4: */
