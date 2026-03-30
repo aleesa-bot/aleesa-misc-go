@@ -3,6 +3,7 @@ package misc
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -20,7 +21,14 @@ var Subscriber *redis.PubSub
 // Канал, в который приходят уведомления для хэндлера сигналов от траппера сигналов.
 var SigChan = make(chan os.Signal, 1)
 
-// Main context.
-var Ctx = context.Background()
+// RedisCtx - контекст для операций с редиской. Отменяется при завершении.
+var RedisCtx context.Context
+var CancelRedisCtx context.CancelFunc
+
+var once sync.Once
+
+func init() {
+	RedisCtx, CancelRedisCtx = context.WithCancel(context.Background())
+}
 
 /* vim: set ft=go noet ai ts=4 sw=4 sts=4: */

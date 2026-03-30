@@ -28,8 +28,11 @@ func SigHandler() {
 			continue
 		}
 
+		// Отменяем контекст редиски, чтобы все ожидающие операции завершились.
+		CancelRedisCtx()
+
 		// Отпишемся от всех каналов и закроем коннект к редиске.
-		if err = Subscriber.Unsubscribe(Ctx); err != nil {
+		if err = Subscriber.Unsubscribe(RedisCtx); err != nil {
 			log.Errorf("Unable to unsubscribe from redis channels cleanly: %s", err)
 		}
 

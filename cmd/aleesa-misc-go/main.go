@@ -40,11 +40,11 @@ func main() {
 		MaxRetries:      -1,
 		MinRetryBackoff: time.Second,
 		MaxRetryBackoff: 30 * time.Second,
-	}).WithContext(misc.Ctx).WithTimeout(time.Duration(misc.Config.Timeout) * time.Second)
+	}).WithContext(misc.RedisCtx).WithTimeout(time.Duration(misc.Config.Timeout) * time.Second)
 
 	// Проверим, что редиска доступна. Повторяем попытки, пока не подключится.
 	for {
-		if err := misc.RedisClient.Ping(misc.Ctx).Err(); err == nil {
+		if err := misc.RedisClient.Ping(misc.RedisCtx).Err(); err == nil {
 			break
 		}
 
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Обозначим, что хотим после соединения подписаться на события из канала config.Channel.
-	misc.Subscriber = misc.RedisClient.Subscribe(misc.Ctx, misc.Config.Channel)
+	misc.Subscriber = misc.RedisClient.Subscribe(misc.RedisCtx, misc.Config.Channel)
 
 	// Самое время поставить траппер сигналов.
 	signal.Notify(misc.SigChan,
@@ -69,7 +69,7 @@ func main() {
 	log.Info("Aleesa-misc-go started")
 
 	for msg := range ch {
-		misc.MsgParser(misc.Ctx, msg.Payload)
+		misc.MsgParser(misc.RedisCtx, msg.Payload)
 	}
 }
 
