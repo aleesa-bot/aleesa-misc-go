@@ -69,9 +69,7 @@ func main() {
 	log.Info("Aleesa-misc-go started")
 
 	for msg := range ch {
-		if !misc.Shutdown {
-			misc.MsgParser(misc.Ctx, msg.Payload)
-		}
+		misc.MsgParser(misc.Ctx, msg.Payload)
 	}
 }
 

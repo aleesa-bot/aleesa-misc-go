@@ -28,9 +28,6 @@ func SigHandler() {
 			continue
 		}
 
-		// Чтобы не срать в логи ошибками от редиски, проставим shutdown state приложения в true.
-		Shutdown = true
-
 		// Отпишемся от всех каналов и закроем коннект к редиске.
 		if err = Subscriber.Unsubscribe(Ctx); err != nil {
 			log.Errorf("Unable to unsubscribe from redis channels cleanly: %s", err)

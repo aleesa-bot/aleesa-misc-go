@@ -17,9 +17,6 @@ var ForwardMax int64 = 5
 var RedisClient *redis.Client
 var Subscriber *redis.PubSub
 
-// Ставится в true, если мы получили сигнал на выключение.
-var Shutdown = false
-
 // Канал, в который приходят уведомления для хэндлера сигналов от траппера сигналов.
 var SigChan = make(chan os.Signal, 1)
 
