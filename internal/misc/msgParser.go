@@ -4,8 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"time"
 
 	"aleesa-misc-go/internal/log"
+)
+
+const (
+	retryAttempts = 3
+	retryDelay    = time.Second
 )
 
 // MsgParser горутинка, которая парсит json-чики прилетевшие из REDIS-ки.
@@ -228,12 +234,26 @@ func MsgParser(ctx context.Context, msg string) {
 		return
 	}
 
-	// Заталкиваем наш json в редиску.
-	if err := RedisClient.Publish(ctx, sendTo, data).Err(); err != nil {
-		log.Warnf("Unable to send data to redis channel %s: %s", sendTo, err)
-	} else {
-		log.Debugf("Send msg to redis channel %s: %s", sendTo, string(data))
+	// Заталкиваем наш json в редиску с повторными попытками.
+	var publishErr error
+
+	for attempt := 1; attempt <= retryAttempts; attempt++ {
+		if publishErr = RedisClient.Publish(ctx, sendTo, data).Err(); publishErr == nil {
+			log.Debugf("Send msg to redis channel %s: %s", sendTo, string(data))
+
+			return
+		}
+
+		log.Warnf("Unable to send data to redis channel %s (attempt %d/%d): %s",
+			sendTo, attempt, retryAttempts, publishErr)
+
+		if attempt < retryAttempts {
+			time.Sleep(retryDelay)
+		}
 	}
+
+	log.Errorf("Failed to send data to redis channel %s after %d attempts: %s",
+		sendTo, retryAttempts, publishErr)
 }
 
 /* vim: set ft=go noet ai ts=4 sw=4 sts=4: */
