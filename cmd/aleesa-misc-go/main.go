@@ -39,6 +39,16 @@ func main() {
 		Addr: fmt.Sprintf("%s:%d", misc.Config.Server, misc.Config.Port),
 	}).WithContext(misc.Ctx).WithTimeout(time.Duration(misc.Config.Timeout) * time.Second)
 
+	// Проверим, что редиска доступна. Повторяем попытки, пока не подключится.
+	for {
+		if err := misc.RedisClient.Ping(misc.Ctx).Err(); err == nil {
+			break
+		}
+
+		log.Warnf("Unable to connect to redis: %s, retrying...", err)
+		time.Sleep(time.Second)
+	}
+
 	// Обозначим, что хотим после соединения подписаться на события из канала config.Channel.
 	misc.Subscriber = misc.RedisClient.Subscribe(misc.Ctx, misc.Config.Channel)
 
